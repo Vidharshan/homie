@@ -1,0 +1,1526 @@
+/* ==========================================================================
+   HOMIE — Cozy Roommate Companion Design System
+   Aesthetic: Warm, Tactile, Anti-Slop, Scandinavian-Bangalore Studio Flat
+   ========================================================================== */
+
+:root {
+  /* Warm Color Palette */
+  --bg-page: #F8F5F0;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #F1ECE3;
+  --bg-sun: #FEF9EF;
+  --bg-warm-terracotta: #FAF0EC;
+
+  --primary: #E07A5F;
+  --primary-hover: #D4694E;
+  --primary-light: #FCECE8;
+  --primary-glow: rgba(224, 122, 95, 0.25);
+
+  --accent-blr: #588157;
+  --accent-blr-light: #EAF2E9;
+  --accent-blr-border: #BCD5BA;
+
+  --accent-home: #495874;
+  --accent-home-light: #ECEEF4;
+  --accent-home-border: #BCC3D4;
+
+  --accent-gold: #E9B44C;
+  --accent-gold-light: #FDF6E7;
+
+  --text-main: #272625;
+  --text-body: #4E4B46;
+  --text-muted: #858077;
+  --text-light: #AEA89E;
+
+  --border-light: rgba(90, 75, 65, 0.09);
+  --border-focus: rgba(224, 122, 95, 0.45);
+
+  /* Shadows with warm chocolate tint */
+  --shadow-sm: 0 2px 6px -1px rgba(74, 58, 48, 0.05);
+  --shadow-md: 0 8px 20px -3px rgba(74, 58, 48, 0.07), 0 2px 6px -2px rgba(74, 58, 48, 0.04);
+  --shadow-lg: 0 18px 36px -6px rgba(74, 58, 48, 0.12), 0 6px 12px -3px rgba(74, 58, 48, 0.06);
+  --shadow-pop: 0 24px 48px -10px rgba(74, 58, 48, 0.2);
+
+  /* Radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* Fonts */
+  --font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background-image: radial-gradient(var(--bg-subtle) 1px, transparent 1px);
+  background-size: 24px 24px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  width: 100%;
+  max-width: 540px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+  position: relative;
+  box-shadow: 0 0 60px rgba(50, 40, 30, 0.04);
+}
+
+/* ==========================================================================
+   Top App Header & Roommate Quick Switch
+   ========================================================================== */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(248, 245, 240, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+  padding: 14px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));
+}
+
+.brand-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.brand-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Roommate Quick Switcher */
+.user-switch-pill {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 4px 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  gap: 4px;
+}
+
+.switch-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.switch-btn .avatar {
+  font-size: 14px;
+}
+
+.switch-btn.active {
+  background: var(--text-main);
+  color: #FFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+}
+
+/* Sound & Settings mini actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-body);
+  font-size: 16px;
+  transition: all 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--bg-subtle);
+  transform: translateY(-1px);
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+/* ==========================================================================
+   Flat Vibe Ambient Banner
+   ========================================================================== */
+
+.flat-vibe-banner {
+  margin: 0 0 16px;
+  background: var(--bg-sun);
+  border: 1px solid rgba(233, 180, 76, 0.3);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.flat-vibe-banner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--accent-gold);
+}
+
+.vibe-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vibe-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vibe-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.vibe-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(233, 180, 76, 0.18);
+  color: #996A13;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Navigation Tabs (Cozy Segmented Control)
+   ========================================================================== */
+
+.nav-tabs-wrapper {
+  padding: 8px 20px 14px;
+}
+
+.segmented-nav {
+  display: flex;
+  background: var(--bg-subtle);
+  padding: 5px;
+  border-radius: var(--radius-full);
+  gap: 4px;
+}
+
+.nav-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-tab-btn.active {
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Main Content Views
+   ========================================================================== */
+
+.main-content {
+  flex: 1;
+  padding: 0 20px 110px;
+}
+
+.tab-pane {
+  display: none;
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   Feature 1: Frictionless Expense Splitting View
+   ========================================================================== */
+
+/* Hero Balance Card */
+.balance-hero-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, var(--bg-warm-terracotta) 100%);
+  border: 1px solid rgba(224, 122, 95, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.balance-hero-card::after {
+  content: '☕';
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  font-size: 56px;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.balance-status-tag {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.balance-hero-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+.balance-hero-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-primary-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: #FFF;
+  border: none;
+  padding: 13px 24px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px var(--primary-glow);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex: 1;
+  min-width: 160px;
+}
+
+.btn-primary-add:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px var(--primary-glow);
+}
+
+.btn-primary-add:active {
+  transform: scale(0.96);
+}
+
+.btn-settle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1.5px solid var(--border-light);
+  padding: 12px 18px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-settle:hover {
+  background: var(--bg-subtle);
+  transform: translateY(-1px);
+}
+
+.btn-settle:active {
+  transform: scale(0.96);
+}
+
+.btn-settled-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-blr-light);
+  color: var(--accent-blr);
+  border: 1px solid var(--accent-blr-border);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.quick-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mini-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-pill {
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-pill.active {
+  background: var(--text-main);
+  color: #FFF;
+  border-color: var(--text-main);
+}
+
+/* Expenses List */
+.expense-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expense-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.18s ease;
+}
+
+.expense-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.expense-card.settled {
+  opacity: 0.65;
+  background: #FCFBF9;
+}
+
+.exp-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cat-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.exp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exp-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.exp-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exp-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.exp-total-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: var(--font-serif);
+}
+
+.exp-share-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.exp-share-badge.lent {
+  background: var(--accent-blr-light);
+  color: var(--accent-blr);
+}
+
+.exp-share-badge.borrowed {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.exp-share-badge.neutral {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+}
+
+.exp-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.exp-action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  color: var(--text-light);
+  font-size: 13px;
+  transition: color 0.15s ease;
+}
+
+.exp-action-btn:hover {
+  color: var(--text-main);
+}
+
+.exp-action-btn.delete:hover {
+  color: #DC3545;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.empty-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Feature 2: Bangalore vs Home Travel Calendar View
+   ========================================================================== */
+
+.calendar-header-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cal-nav-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+}
+
+.cal-nav-btn:hover {
+  background: var(--bg-page);
+  transform: translateY(-1px);
+}
+
+.cal-nav-btn:active {
+  transform: scale(0.92);
+}
+
+.cal-month-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  text-align: center;
+}
+
+.cal-month-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Legend Row */
+.cal-legend-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+}
+
+.legend-dot.blr {
+  background: var(--accent-blr);
+}
+
+.legend-dot.home {
+  background: var(--accent-home);
+}
+
+.legend-dot.wfh {
+  background: var(--accent-gold);
+}
+
+/* Calendar Grid */
+.calendar-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 20px;
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cal-day-cell {
+  aspect-ratio: 1 / 1.18;
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+  border: 1px solid transparent;
+  padding: 5px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.cal-day-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-focus);
+}
+
+.cal-day-cell.inactive-month {
+  opacity: 0.35;
+}
+
+.cal-day-cell.today {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.cal-day-cell.selected {
+  border: 2px solid var(--primary);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.day-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.today-pip {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+}
+
+/* Presence badges inside a cell */
+.day-presences {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5px;
+  width: 100%;
+}
+
+.roommate-mini-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5px 3.5px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.roommate-mini-chip.blr {
+  background: var(--accent-blr-light);
+  color: var(--accent-blr);
+  border: 1px solid rgba(88, 129, 87, 0.2);
+}
+
+.roommate-mini-chip.home {
+  background: var(--accent-home-light);
+  color: var(--accent-home);
+  border: 1px solid rgba(73, 88, 116, 0.2);
+}
+
+/* Subtle WFH/WFO tiny indicator glyph */
+.subtle-work-glyph {
+  font-size: 8.5px;
+  margin-left: 1px;
+}
+
+/* Month Stats Card */
+.month-stats-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  text-align: center;
+  gap: 8px;
+}
+
+.month-stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.m-stat-val {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.m-stat-lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Day Travel & Subtle Work Inspector Bottom Sheet / Modal
+   ========================================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 38, 43, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+@media (min-width: 560px) {
+  .modal-backdrop {
+    align-items: center;
+  }
+}
+
+.modal-backdrop.open {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-sheet {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 520px;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 24px 36px;
+  box-shadow: var(--shadow-pop);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (min-width: 560px) {
+  .modal-sheet {
+    border-radius: 28px;
+    transform: scale(0.95) translateY(20px);
+    max-height: 85vh;
+  }
+}
+
+.modal-backdrop.open .modal-sheet {
+  transform: translateY(0);
+}
+
+@media (min-width: 560px) {
+  .modal-backdrop.open .modal-sheet {
+    transform: scale(1) translateY(0);
+  }
+}
+
+.sheet-handle {
+  width: 38px;
+  height: 4px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  margin: 0 auto 18px;
+}
+
+@media (min-width: 560px) {
+  .sheet-handle {
+    display: none;
+  }
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sheet-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.sheet-close-btn {
+  background: var(--bg-subtle);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+/* Day Inspector Components */
+.inspector-roommate-row {
+  background: var(--bg-page);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.inspector-user-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.inspector-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.presence-toggle-pills {
+  display: flex;
+  background: var(--bg-subtle);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  gap: 4px;
+}
+
+.p-pill {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  transition: all 0.18s ease;
+}
+
+.p-pill.active.blr {
+  background: var(--accent-blr);
+  color: #FFF;
+  box-shadow: 0 2px 8px rgba(88, 129, 87, 0.3);
+}
+
+.p-pill.active.home {
+  background: var(--accent-home);
+  color: #FFF;
+  box-shadow: 0 2px 8px rgba(73, 88, 116, 0.3);
+}
+
+/* Subtle WFH / WFO Selector (Non-prominent) */
+.subtle-wfh-container {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subtle-wfh-label {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.subtle-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.subtle-chip {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.subtle-chip:hover {
+  background: var(--bg-subtle);
+}
+
+.subtle-chip.active {
+  background: var(--accent-gold);
+  color: #2D240F;
+  border-color: var(--accent-gold);
+  font-weight: 700;
+}
+
+/* Travel Range Quick Setter */
+.range-setter-card {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-top: 16px;
+}
+
+.range-setter-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.range-inputs input[type="date"] {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  background: var(--bg-card);
+}
+
+.range-btn-apply {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent-home);
+  color: #FFF;
+  border: none;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Compact Minimal-Space Add Expense Card & Modal Form (Zero Scrolling)
+   ========================================================================== */
+
+.compact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.compact-amount-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.compact-amount-wrapper .currency-symbol {
+  position: absolute;
+  left: 12px;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.compact-amount-input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-page);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.compact-amount-input:focus {
+  border-color: var(--primary);
+  background: #FFF;
+}
+
+.compact-form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+/* Category Chips (7 requested categories) */
+.compact-category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.cat-pill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-page);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cat-pill-chip:hover {
+  background: var(--bg-subtle);
+}
+
+.cat-pill-chip.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+  font-weight: 700;
+}
+
+.compact-text-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-page);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.compact-text-input:focus {
+  border-color: var(--primary);
+  background: #FFF;
+}
+
+/* Exactly Two Split Options: 50/50 vs Paid in Full */
+.compact-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.compact-split-btn {
+  background: var(--bg-page);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.compact-split-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.compact-split-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.compact-split-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.compact-submit-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: #FFF;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px var(--primary-glow);
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-top: 4px;
+}
+
+.compact-submit-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.compact-submit-btn:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   Settle Up Modal (UPI Deep-Link & QR)
+   ========================================================================== */
+
+.settle-hero-box {
+  background: var(--bg-sun);
+  border: 1px solid rgba(233, 180, 76, 0.3);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.settle-big-amount {
+  font-family: var(--font-serif);
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.settle-direction {
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.qr-code-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.qr-image {
+  width: 180px;
+  height: 180px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-light);
+  background: #FFF;
+  padding: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.upi-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-upi-app {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #117864;
+  color: #FFF;
+  text-decoration: none;
+  padding: 13px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(17, 120, 100, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-upi-app:hover {
+  transform: translateY(-2px);
+}
+
+.btn-mark-settled {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-light);
+  color: var(--text-main);
+  padding: 12px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-mark-settled:hover {
+  background: var(--bg-subtle);
+}
+
+/* ==========================================================================
+   Settings & Profile Screen
+   ========================================================================== */
+
+.settings-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roommate-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.profile-editor-box {
+  background: var(--bg-page);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   Floating Action Button (Add Expense)
+   ========================================================================== */
+
+.floating-action-btn {
+  position: fixed;
+  bottom: 24px;
+  right: calc(50% - 250px);
+  z-index: 50;
+  background: var(--primary);
+  color: #FFF;
+  border: none;
+  padding: 14px 22px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px var(--primary-glow), var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (max-width: 560px) {
+  .floating-action-btn {
+    right: 20px;
+    bottom: 20px;
+  }
+}
+
+.floating-action-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 30px var(--primary-glow);
+}
+
+.floating-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Toast Notification */
+.toast-notice {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--text-main);
+  color: #FFF;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+}
+
+.toast-notice.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

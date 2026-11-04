@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="128" fill="#FAF7F2"/>
+  <rect x="48" y="48" width="416" height="416" rx="96" fill="#E07A5F" fill-opacity="0.15"/>
+  <text x="50%" y="55%" font-size="220" text-anchor="middle" dominant-baseline="middle">🏡</text>
+</svg>
