@@ -125,7 +125,7 @@ async function getFullState() {
   });
   const activeUserId = activeRes.rows[0]?.val || 'r1';
 
-  const expensesRes = await db.execute('SELECT * FROM expenses ORDER BY created_at DESC');
+  const expensesRes = await db.execute('SELECT * FROM expenses ORDER BY date DESC, created_at DESC');
   const expenses = expensesRes.rows.map(e => ({
     id: e.id,
     title: e.title,

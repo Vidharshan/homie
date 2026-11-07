@@ -152,6 +152,16 @@ class HomieApp {
       filtered = filtered.filter(e => e.date.startsWith(currentMonthPrefix));
     }
 
+    // Strict chronological sort: newest date first, then newest creation
+    filtered.sort((a, b) => {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      if (dateB !== dateA) {
+        return dateB.localeCompare(dateA);
+      }
+      return (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0);
+    });
+
     return `
       <!-- Hero Balance Card with Primary Add Expense Button -->
       <div class="balance-hero-card">
@@ -492,15 +502,21 @@ class HomieApp {
               </div>
 
               <div>
-                <label class="compact-form-label">Paid By</label>
-                <div class="user-switch-pill" style="padding: 2px;">
-                  <button type="button" class="switch-btn ${this.newExpense.payerId === 'r1' ? 'active' : ''}" data-select-payer="r1" style="flex: 1; padding: 5px 8px; font-size: 12px;">
-                    <span>${r1.avatar} ${r1.name}</span>
-                  </button>
-                  <button type="button" class="switch-btn ${this.newExpense.payerId === 'r2' ? 'active' : ''}" data-select-payer="r2" style="flex: 1; padding: 5px 8px; font-size: 12px;">
-                    <span>${r2.avatar} ${r2.name}</span>
-                  </button>
-                </div>
+                <label class="compact-form-label">Date</label>
+                <input type="date" id="exp-date" class="compact-text-input" value="${this.newExpense.date}" required />
+              </div>
+            </div>
+
+            <!-- Row 2: Paid By Toggle -->
+            <div>
+              <label class="compact-form-label">Paid By</label>
+              <div class="user-switch-pill" style="padding: 2px;">
+                <button type="button" class="switch-btn ${this.newExpense.payerId === 'r1' ? 'active' : ''}" data-select-payer="r1" style="flex: 1; padding: 6px 8px; font-size: 12px; justify-content: center;">
+                  <span>${r1.avatar} ${r1.name} (Me)</span>
+                </button>
+                <button type="button" class="switch-btn ${this.newExpense.payerId === 'r2' ? 'active' : ''}" data-select-payer="r2" style="flex: 1; padding: 6px 8px; font-size: 12px; justify-content: center;">
+                  <span>${r2.avatar} ${r2.name}</span>
+                </button>
               </div>
             </div>
 
@@ -589,6 +605,7 @@ class HomieApp {
       e.preventDefault();
       const amount = parseFloat(document.getElementById('exp-amount').value);
       const title = document.getElementById('exp-title').value.trim() || 'Shared expense';
+      const dateVal = document.getElementById('exp-date').value || new Date().toISOString().split('T')[0];
 
       if (!amount || amount <= 0) return;
 
@@ -607,7 +624,7 @@ class HomieApp {
         payerId: this.newExpense.payerId,
         splitMode: this.newExpense.splitMode,
         shares,
-        date: this.newExpense.date
+        date: dateVal
       });
 
       sounds.playSuccess();
