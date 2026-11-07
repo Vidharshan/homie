@@ -1,6 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import Database from 'better-sqlite3';
+import { createClient } from '@libsql/client';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -14,125 +15,145 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Ensure persistent data folder exists
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+// Initialize LibSQL Client (Turso Cloud or Local SQLite fallback)
+const tursoUrl = process.env.TURSO_DATABASE_URL?.trim();
+const tursoToken = process.env.TURSO_AUTH_TOKEN?.trim();
+
+let db;
+if (tursoUrl) {
+  console.log('Connecting to Turso Cloud Database:', tursoUrl);
+  db = createClient({
+    url: tursoUrl,
+    authToken: tursoToken || undefined,
+  });
+} else {
+  const dataDir = path.join(__dirname, 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  const localDbPath = path.join(dataDir, 'homie.db').replace(/\\/g, '/');
+  console.log('Connecting to Local SQLite Database:', localDbPath);
+  db = createClient({
+    url: 'file:' + localDbPath,
+  });
 }
 
-const dbPath = path.join(dataDir, 'homie.db');
-const db = new Database(dbPath);
+// Database schema initialization
+async function initDb() {
+  await db.executeMultiple(`
+    CREATE TABLE IF NOT EXISTS roommates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      avatar TEXT NOT NULL,
+      color TEXT NOT NULL,
+      upi TEXT
+    );
 
-// Enable WAL mode for concurrent performance & durability
-db.pragma('journal_mode = WAL');
+    CREATE TABLE IF NOT EXISTS expenses (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      amount REAL NOT NULL,
+      category TEXT NOT NULL,
+      payer_id TEXT NOT NULL,
+      split_mode TEXT NOT NULL,
+      r1_share REAL NOT NULL,
+      r2_share REAL NOT NULL,
+      date TEXT NOT NULL,
+      settled INTEGER DEFAULT 0,
+      settlement_id TEXT,
+      created_at INTEGER NOT NULL
+    );
 
-// Initialize SQLite Schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS roommates (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    avatar TEXT NOT NULL,
-    color TEXT NOT NULL,
-    upi TEXT
-  );
+    CREATE TABLE IF NOT EXISTS settlements (
+      id TEXT PRIMARY KEY,
+      from_id TEXT NOT NULL,
+      to_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      note TEXT,
+      date TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
 
-  CREATE TABLE IF NOT EXISTS expenses (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    amount REAL NOT NULL,
-    category TEXT NOT NULL,
-    payer_id TEXT NOT NULL,
-    split_mode TEXT NOT NULL,
-    r1_share REAL NOT NULL,
-    r2_share REAL NOT NULL,
-    date TEXT NOT NULL,
-    settled INTEGER DEFAULT 0,
-    settlement_id TEXT,
-    created_at INTEGER NOT NULL
-  );
+    CREATE TABLE IF NOT EXISTS calendar_presence (
+      date_str TEXT NOT NULL,
+      roommate_id TEXT NOT NULL,
+      status TEXT NOT NULL,
+      work_mode TEXT,
+      PRIMARY KEY (date_str, roommate_id)
+    );
 
-  CREATE TABLE IF NOT EXISTS settlements (
-    id TEXT PRIMARY KEY,
-    from_id TEXT NOT NULL,
-    to_id TEXT NOT NULL,
-    amount REAL NOT NULL,
-    note TEXT,
-    date TEXT NOT NULL,
-    created_at INTEGER NOT NULL
-  );
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      val TEXT
+    );
+  `);
 
-  CREATE TABLE IF NOT EXISTS calendar_presence (
-    date_str TEXT NOT NULL,
-    roommate_id TEXT NOT NULL,
-    status TEXT NOT NULL,
-    work_mode TEXT,
-    PRIMARY KEY (date_str, roommate_id)
-  );
-
-  CREATE TABLE IF NOT EXISTS app_settings (
-    key TEXT PRIMARY KEY,
-    val TEXT
-  );
-`);
-
-function seedDatabaseIfEmpty() {
-  const roomCount = db.prepare('SELECT count(*) as count FROM roommates').get().count;
-  if (roomCount === 0) {
-    const insertRoom = db.prepare('INSERT INTO roommates (id, name, avatar, color, upi) VALUES (?, ?, ?, ?, ?)');
-    insertRoom.run('r1', 'Rohan', '☕', '#E07A5F', 'rohan@okhdfcbank');
-    insertRoom.run('r2', 'Kabir', '🪴', '#81B29A', 'kabir@icici');
-
-    db.prepare('INSERT OR REPLACE INTO app_settings (key, val) VALUES (?, ?)').run('active_user_id', 'r1');
-
-    // Initial calendar presence
-    const insertCal = db.prepare('INSERT OR REPLACE INTO calendar_presence (date_str, roommate_id, status, work_mode) VALUES (?, ?, ?, ?)');
-    const todayStr = formatD(today);
-    insertCal.run(todayStr, 'r1', 'bangalore', 'wfh');
-    insertCal.run(todayStr, 'r2', 'bangalore', 'wfo');
+  // Seed default roommates if empty (Clean slate: zero expenses)
+  const roomRes = await db.execute('SELECT count(*) as count FROM roommates');
+  const count = roomRes.rows[0]?.count ?? 0;
+  if (Number(count) === 0) {
+    await db.batch([
+      {
+        sql: 'INSERT INTO roommates (id, name, avatar, color, upi) VALUES (?, ?, ?, ?, ?)',
+        args: ['r1', 'Rohan', '☕', '#E07A5F', 'rohan@okhdfcbank']
+      },
+      {
+        sql: 'INSERT INTO roommates (id, name, avatar, color, upi) VALUES (?, ?, ?, ?, ?)',
+        args: ['r2', 'Kabir', '🪴', '#81B29A', 'kabir@icici']
+      },
+      {
+        sql: 'INSERT OR REPLACE INTO app_settings (key, val) VALUES (?, ?)',
+        args: ['active_user_id', 'r1']
+      }
+    ]);
   }
 }
 
-seedDatabaseIfEmpty();
+initDb().catch(err => console.error('Database initialization error:', err));
 
-// Helper to assemble full state
-function getFullState() {
-  const rooms = db.prepare('SELECT * FROM roommates').all();
+// Assemble full reactive state
+async function getFullState() {
+  const roomsRes = await db.execute('SELECT * FROM roommates');
   const roommatesObj = {};
-  rooms.forEach(r => {
+  roomsRes.rows.forEach(r => {
     roommatesObj[r.id] = r;
   });
 
-  const activeUserRow = db.prepare('SELECT val FROM app_settings WHERE key = ?').get('active_user_id');
-  const activeUserId = activeUserRow ? activeUserRow.val : 'r1';
+  const activeRes = await db.execute({
+    sql: 'SELECT val FROM app_settings WHERE key = ?',
+    args: ['active_user_id']
+  });
+  const activeUserId = activeRes.rows[0]?.val || 'r1';
 
-  const expensesRows = db.prepare('SELECT * FROM expenses ORDER BY created_at DESC').all();
-  const expenses = expensesRows.map(e => ({
+  const expensesRes = await db.execute('SELECT * FROM expenses ORDER BY created_at DESC');
+  const expenses = expensesRes.rows.map(e => ({
     id: e.id,
     title: e.title,
-    amount: e.amount,
+    amount: Number(e.amount),
     category: e.category,
     payerId: e.payer_id,
     splitMode: e.split_mode,
-    shares: { r1: e.r1_share, r2: e.r2_share },
+    shares: { r1: Number(e.r1_share), r2: Number(e.r2_share) },
     date: e.date,
     settled: Boolean(e.settled),
     settlementId: e.settlement_id,
-    createdAt: e.created_at
+    createdAt: Number(e.created_at)
   }));
 
-  const settlements = db.prepare('SELECT * FROM settlements ORDER BY created_at DESC').all().map(s => ({
+  const settlementsRes = await db.execute('SELECT * FROM settlements ORDER BY created_at DESC');
+  const settlements = settlementsRes.rows.map(s => ({
     id: s.id,
     fromId: s.from_id,
     toId: s.to_id,
-    amount: s.amount,
+    amount: Number(s.amount),
     note: s.note,
     date: s.date,
-    createdAt: s.created_at
+    createdAt: Number(s.created_at)
   }));
 
-  const calRows = db.prepare('SELECT * FROM calendar_presence').all();
+  const calRes = await db.execute('SELECT * FROM calendar_presence');
   const calendar = {};
-  calRows.forEach(c => {
+  calRes.rows.forEach(c => {
     if (!calendar[c.date_str]) calendar[c.date_str] = {};
     calendar[c.date_str][c.roommate_id] = {
       status: c.status,
@@ -149,43 +170,51 @@ function getFullState() {
   };
 }
 
-// REST API Endpoints
-app.get('/api/state', (req, res) => {
+// REST Endpoints
+app.get('/api/state', async (req, res) => {
   try {
-    const state = getFullState();
+    const state = await getFullState();
     res.json(state);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/active-user', (req, res) => {
-  const { id } = req.body;
-  db.prepare('INSERT OR REPLACE INTO app_settings (key, val) VALUES (?, ?)').run('active_user_id', id);
-  res.json({ success: true, activeUserId: id });
+app.post('/api/active-user', async (req, res) => {
+  try {
+    const { id } = req.body;
+    await db.execute({
+      sql: 'INSERT OR REPLACE INTO app_settings (key, val) VALUES (?, ?)',
+      args: ['active_user_id', id]
+    });
+    res.json({ success: true, activeUserId: id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post('/api/expenses', (req, res) => {
+app.post('/api/expenses', async (req, res) => {
   try {
     const { title, amount, category, payerId, splitMode, shares, date } = req.body;
     const id = 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     const createdAt = Date.now();
 
-    db.prepare(`
-      INSERT INTO expenses (id, title, amount, category, payer_id, split_mode, r1_share, r2_share, date, settled, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-    `).run(
-      id,
-      title,
-      Number(amount),
-      category,
-      payerId,
-      splitMode,
-      shares?.r1 ?? (amount / 2),
-      shares?.r2 ?? (amount / 2),
-      date || new Date().toISOString().split('T')[0],
-      createdAt
-    );
+    await db.execute({
+      sql: `INSERT INTO expenses (id, title, amount, category, payer_id, split_mode, r1_share, r2_share, date, settled, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
+      args: [
+        id,
+        title,
+        Number(amount),
+        category,
+        payerId,
+        splitMode,
+        shares?.r1 ?? (amount / 2),
+        shares?.r2 ?? (amount / 2),
+        date || new Date().toISOString().split('T')[0],
+        createdAt
+      ]
+    });
 
     res.json({ success: true, id });
   } catch (err) {
@@ -193,51 +222,59 @@ app.post('/api/expenses', (req, res) => {
   }
 });
 
-app.delete('/api/expenses/:id', (req, res) => {
+app.delete('/api/expenses/:id', async (req, res) => {
   try {
-    db.prepare('DELETE FROM expenses WHERE id = ?').run(req.params.id);
+    await db.execute({
+      sql: 'DELETE FROM expenses WHERE id = ?',
+      args: [req.params.id]
+    });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/settle', (req, res) => {
+app.post('/api/settle', async (req, res) => {
   try {
     const { fromId, toId, amount, note } = req.body;
     const id = 'set_' + Date.now();
     const createdAt = Date.now();
     const date = new Date().toISOString().split('T')[0];
 
-    const insert = db.transaction(() => {
-      db.prepare(`
-        INSERT INTO settlements (id, from_id, to_id, amount, note, date, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(id, fromId, toId, amount, note || 'Settled balance', date, createdAt);
+    await db.batch([
+      {
+        sql: `INSERT INTO settlements (id, from_id, to_id, amount, note, date, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        args: [id, fromId, toId, Number(amount), note || 'Settled balance', date, createdAt]
+      },
+      {
+        sql: 'UPDATE expenses SET settled = 1, settlement_id = ? WHERE settled = 0',
+        args: [id]
+      }
+    ]);
 
-      db.prepare('UPDATE expenses SET settled = 1, settlement_id = ? WHERE settled = 0').run(id);
-    });
-
-    insert();
     res.json({ success: true, settlementId: id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/calendar/day', (req, res) => {
+app.post('/api/calendar/day', async (req, res) => {
   try {
     const { dateStr, roommateId, status, workMode } = req.body;
-    
-    // Check existing
-    const existing = db.prepare('SELECT * FROM calendar_presence WHERE date_str = ? AND roommate_id = ?').get(dateStr, roommateId);
+    const existingRes = await db.execute({
+      sql: 'SELECT * FROM calendar_presence WHERE date_str = ? AND roommate_id = ?',
+      args: [dateStr, roommateId]
+    });
+    const existing = existingRes.rows[0];
     const finalStatus = status !== undefined ? status : (existing ? existing.status : 'bangalore');
     const finalWorkMode = workMode !== undefined ? workMode : (existing ? existing.work_mode : null);
 
-    db.prepare(`
-      INSERT OR REPLACE INTO calendar_presence (date_str, roommate_id, status, work_mode)
-      VALUES (?, ?, ?, ?)
-    `).run(dateStr, roommateId, finalStatus, finalStatus === 'home' ? null : finalWorkMode);
+    await db.execute({
+      sql: `INSERT OR REPLACE INTO calendar_presence (date_str, roommate_id, status, work_mode)
+             VALUES (?, ?, ?, ?)`,
+      args: [dateStr, roommateId, finalStatus, finalStatus === 'home' ? null : finalWorkMode]
+    });
 
     res.json({ success: true });
   } catch (err) {
@@ -245,55 +282,56 @@ app.post('/api/calendar/day', (req, res) => {
   }
 });
 
-app.post('/api/calendar/range', (req, res) => {
+app.post('/api/calendar/range', async (req, res) => {
   try {
     const { startDateStr, endDateStr, roommateId, status } = req.body;
     let cur = new Date(startDateStr);
     const end = new Date(endDateStr);
+    const statements = [];
 
-    const updateMany = db.transaction(() => {
-      const stmt = db.prepare(`
-        INSERT OR REPLACE INTO calendar_presence (date_str, roommate_id, status, work_mode)
-        VALUES (?, ?, ?, NULL)
-      `);
-      while (cur <= end) {
-        const ds = cur.toISOString().split('T')[0];
-        stmt.run(ds, roommateId, status);
-        cur.setDate(cur.getDate() + 1);
-      }
-    });
+    while (cur <= end) {
+      const ds = cur.toISOString().split('T')[0];
+      statements.push({
+        sql: 'INSERT OR REPLACE INTO calendar_presence (date_str, roommate_id, status, work_mode) VALUES (?, ?, ?, NULL)',
+        args: [ds, roommateId, status]
+      });
+      cur.setDate(cur.getDate() + 1);
+    }
 
-    updateMany();
+    if (statements.length > 0) {
+      await db.batch(statements);
+    }
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/roommates/:id', (req, res) => {
+app.post('/api/roommates/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, avatar, upi } = req.body;
-    db.prepare(`
-      UPDATE roommates SET name = coalesce(?, name), avatar = coalesce(?, avatar), upi = coalesce(?, upi)
-      WHERE id = ?
-    `).run(name, avatar, upi, id);
-
+    await db.execute({
+      sql: `UPDATE roommates SET name = coalesce(?, name), avatar = coalesce(?, avatar), upi = coalesce(?, upi)
+             WHERE id = ?`,
+      args: [name || null, avatar || null, upi || null, id]
+    });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/reset', (req, res) => {
+app.post('/api/reset', async (req, res) => {
   try {
-    db.exec(`
+    await db.executeMultiple(`
       DELETE FROM expenses;
       DELETE FROM settlements;
       DELETE FROM calendar_presence;
       DELETE FROM roommates;
     `);
-    seedDatabaseIfEmpty();
+    await initDb();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -309,7 +347,11 @@ if (fs.existsSync(distDir)) {
   });
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Homie SQLite Backend running at http://localhost:${PORT}`);
-  console.log(`Database stored at: ${dbPath}`);
-});
+// Export app for Vercel Serverless Function
+export default app;
+
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Homie Server running at http://localhost:${PORT}`);
+  });
+}
